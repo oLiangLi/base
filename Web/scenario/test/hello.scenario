@@ -1,0 +1,30 @@
+%package machine.foobar
+
+%scenario Hello {
+    %event AA, AC, AD
+
+    %export %group %event ALL {
+        AA, AC, AD
+    }
+
+    %state AA, AC, AD
+    %export %group %state ALL {
+        AD, AA, AC
+    }
+
+    %group %state CC {
+        AC
+    }
+
+    <INITIAL>{
+        //%action /\0/
+
+        //%action /[\0]/
+
+        %action /[\0-\011]/
+
+        %action /\0\3/
+
+        %action /{AC}/
+    }
+}

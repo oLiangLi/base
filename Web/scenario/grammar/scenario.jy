@@ -1,0 +1,264 @@
+/**
+ *!
+ */
+%token TK_PACKAGE
+%token TK_SCENARIO
+%token TK_STATE
+%token TK_EVENT
+%token TK_GROUP 
+%token TK_DEFINE
+%token TK_ACTION
+%token TK_EXPORT
+
+/**
+ *!
+ */
+%token TK_IDEN
+
+/**
+ *! regexp ...
+ */
+%token TK_CHAR
+%token TK_CCL
+%token TK_NUMBER
+%token TK_EXT
+
+%%
+
+goal:
+    package
+    |
+	package scenarios
+	;
+
+package:
+    TK_PACKAGE package_name     { /**@ AC_PACKAGE_DECLARE */ }
+    ;
+
+package_name:
+    TK_IDEN
+    |
+    package_name '.' TK_IDEN    { /**@ AC_PACKAGE_NAME2 */ }
+    ;
+
+scenarios:
+    scenario
+    |
+    scenarios scenario
+    ;
+
+scenario:
+	TK_SCENARIO scenario_name '{'
+		scenario_declare_list
+	'}'
+	|
+	TK_SCENARIO scenario_name '{' '}'
+	;
+
+scenario_name:
+	TK_IDEN				{ /**@ AC_SCENARIO_NAME */ }
+	;
+
+scenario_declare_list:
+	scenario_declare
+	|
+	scenario_declare_list scenario_declare
+	;
+
+scenario_declare:
+	state_declare
+	|
+	event_declare
+	|
+	state_group_declare
+	|
+	event_group_declare
+	|
+	action_group_declare
+	|
+	define_expr
+	;
+
+state_declare:
+	TK_STATE state_list
+	;
+
+state_list:
+	TK_IDEN							{ /**@ AC_STATE_1 */ }
+	|
+	state_list ',' TK_IDEN			{ /**@ AC_STATE_2 */ }
+	;
+
+event_declare:
+	TK_EVENT event_list
+	;
+
+event_list:
+	TK_IDEN							{ /**@ AC_EVENT_1 */ }
+	|
+	event_list ',' TK_IDEN			{ /**@ AC_EVENT_2 */ }
+	;
+
+export_group:
+    TK_GROUP                        { /**@ AC_EXPORT_GROUP_FALSE */ }
+    |
+    TK_EXPORT TK_GROUP              { /**@ AC_EXPORT_GROUP_TRUE  */ }
+    ;
+
+state_group_declare:
+	export_group TK_STATE state_group_name '{'
+		state_group_entries
+	'}'
+	;
+
+state_group_name:
+	TK_IDEN							{ /**@ AC_STATE_GROUP_NAME */ }
+	;
+
+state_group_entries:
+	state_group_item
+	|
+	state_group_entries ',' state_group_item
+	;
+
+state_group_item:
+	TK_IDEN							{ /**@ AC_STATE_GROUP_1 */ }
+	|
+	TK_IDEN '.' TK_IDEN				{ /**@ AC_STATE_GROUP_2 */ }
+	|
+	'{' TK_IDEN '}'					{ /**@ AC_STATE_GROUP_G1 */ }
+	|
+	'{' TK_IDEN '.' TK_IDEN '}'		{ /**@ AC_STATE_GROUP_G2 */ }
+	;
+
+event_group_declare:
+	export_group TK_EVENT event_group_name '{'
+		event_group_entries
+	'}'
+	;
+
+event_group_name:
+	TK_IDEN							{ /**@ AC_EVENT_GROUP_NAME */ }
+	;
+	
+event_group_entries:
+	event_group_item
+	|
+	event_group_entries ',' event_group_item
+	;
+
+event_group_item:
+	TK_IDEN							{ /**@ AC_EVENT_GROUP_1 */ }
+	|
+	TK_IDEN '.' TK_IDEN				{ /**@ AC_EVENT_GROUP_2 */ }
+	|
+	'{' TK_IDEN '}'					{ /**@ AC_EVENT_GROUP_G1 */ }
+	|
+	'{' TK_IDEN '.' TK_IDEN '}'		{ /**@ AC_EVENT_GROUP_G2 */ }
+	;
+
+action_group_declare:
+	start_state_declare '{'
+		action_declare_list
+	'}'
+	|
+	start_state_declare '{' '}'
+	;
+
+start_state_declare:
+	start_state_declare_begin '<' start_state_list '>'
+	;
+
+start_state_declare_begin:
+    /* Empty */                     { /**@ AC_START_STATE_DECLARE */ }
+    ;
+
+start_state_list:
+	start_state
+	|
+	start_state_list ',' start_state
+	;
+
+start_state:
+	TK_IDEN							{ /**@ AC_START_STATE_1  */ }
+	|
+	TK_IDEN '.' TK_IDEN				{ /**@ AC_START_STATE_2  */ }
+	|
+	'{' TK_IDEN '}'					{ /**@ AC_START_STATE_G1 */ }
+	|
+	'{' TK_IDEN '.' TK_IDEN '}'		{ /**@ AC_START_STATE_G2 */ }
+	;
+
+action_declare_list:
+	action_declare
+	|
+	action_declare_list action_declare
+	;
+
+action_declare:
+	TK_ACTION regexp		opt_code		{ /**@ AC_ACTION_DECLARE_0   */ }
+	|
+	TK_ACTION TK_IDEN regexp	opt_code	{ /**@ AC_ACTION_DECLARE_1   */ }
+	;
+
+opt_code:
+  /**/														{ /**@ AC_ACTION_OPT_CODE_NULL  */ }
+	|
+	'{'															{ /**@ AC_ACTION_OPT_CODE_START */ }
+	;
+
+define_expr:
+	TK_DEFINE TK_IDEN regexp		{ /**@ AC_DEFINE_EXPR        */ }
+	;
+
+regexp:
+	'/' re '/'						{ /**@ AC_REGEXP_RE          */ }
+	|
+	'/' '^' re '/'					{ /**@ AC_REGEXP_RE_BOL      */ }
+	;
+
+re:
+	series							{ /**@ AC_RE_SERIES         */ }
+	|
+	re '|' series				    { /**@ AC_RE2_SERIES        */ }
+	;
+
+series:
+	singleton						{ /**@ AC_SERIES_SINGLETON  */ }
+	|
+	series singleton				{ /**@ AC_SERIES2_SINGLETON */ }
+	;
+
+singleton:
+	'(' re ')'						{ /**@ AC_SINGLETON_RE      */ }
+	|
+	singleton '*'					{ /**@ AC_SINGLETON_MKCLOS  */ }
+	|
+	singleton '+'					{ /**@ AC_SINGLETON_MKPOSCL */ }
+	|
+	singleton '?'					{ /**@ AC_SINGLETON_MKOPT   */ }
+	|
+	singleton '{' TK_NUMBER '}'						{ /**@ AC_SINGLETON_MKREP1   */ }
+	|
+	singleton '{' TK_NUMBER ',' '}'					{ /**@ AC_SINGLETON_MKREP1X  */ }
+	|
+	singleton '{' TK_NUMBER ',' TK_NUMBER '}'		{ /**@ AC_SINGLETON_MKREP2EX */ }
+	|
+	TK_CHAR							{ /**@ AC_SINGLETON_CHAR   */ }
+	|
+	TK_CCL							{ /**@ AC_SINGLETON_CCL    */ }
+	|
+	TK_EXT							{ /**@ AC_SINGLETON_EXT    */ }
+	|
+	'"' '"'							{ /**@ AC_SINGLETON_EMPTY  */ }
+	|
+	'"' string '"'					{ /**@ AC_SINGLETON_STRING */ }
+	|
+	'.'								{ /**@ AC_SINGLETON_ANYCHR */ }
+	;
+
+string:
+	TK_CHAR							{ /**@ AC_STRING_CHAR      */ }
+	|
+	string TK_CHAR					{ /**@ AC_STRING2_CHAR     */ }
+	;

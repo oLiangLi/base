@@ -1,0 +1,101 @@
+/**
+ * bootstrap check <==> ../lib/tokenize.l
+ */
+%package machine.foobar
+
+%scenario Bootstrap {
+
+    %define NL          /\r\n|\r|\n/
+    %define NOTNL		/[^\r\n]/
+    %define ANYCHAR		/[^[:space:]\\]/
+    %define BLANK 		/[[:blank:]]/
+    %define ALPHA		/[[:alpha:]]/
+    %define ALNUM_		/[[:alnum:]_]/
+    %define DIGIT		/[[:digit:]]/
+    %define HEX			/[[:xdigit:]]/
+    %define OCT			/[0-7]/
+    %define V0123		/[0-3]/
+    %define CCLCC		/[^\\\]\r\n]/
+    %define OPERATOR	/[\*\+\?\.\(\)\{\}\|]/
+
+    %define NAME		/{ALPHA}{ALNUM_}*/
+    %define NAME2       /{NAME}\.{NAME}/
+    %define NUMBER		/{DIGIT}+/
+
+    %define ESCSEQ		/\\({OCT}{1,2}|{V0123}{OCT}{2}|x{HEX}{1,2}|u{HEX}{4}|U{HEX}{6}|{NOTNL})/
+    %define CCLCHAR		/{CCLCC}|{ESCSEQ}/
+
+    %state SC_MCOMM, SC_SCOMM, SC_REGEXP, SC_RE_QUOT, SC_RE_CCL
+
+    %group %state SCG_COMMENT_ANY {
+        SC_MCOMM, Bootstrap.SC_SCOMM
+    }
+
+    %group %state SCG_REGEXP_ANY {
+        SC_REGEXP, Bootstrap.SC_RE_QUOT
+    }
+
+    <SC_MCOMM> {
+        %action AC_MCOMM_END  /"*/"/
+        %action AC_MCOMM_NL   /{NL}/
+    }
+
+    <SC_SCOMM> {
+        %action AC_SCOMM_NL  /{NL}/
+    }
+
+    <{SCG_COMMENT_ANY}> {
+        %action /* AC_COMMENT_ANY */   /{NOTNL}/
+    }
+
+    <SC_REGEXP>{
+        %action AC_REGEXP_END       /\//
+        %action AC_REGEXP_QUOT      /\"/
+        %action AC_REGEXP_CCL       /\[\^?/
+        %action AC_REGEXP_EXT1      /"{"{NAME}"}"/
+        %action AC_REGEXP_EXT2      /"{"{NAME2}"}"/
+        %action AC_REGEXP_OP        /{OPERATOR}/
+        %action AC_REGEXP_REP1      /"{"{NUMBER}\,?"}"/
+        %action AC_REGEXP_REP2      /"{"{NUMBER}\,{NUMBER}"}"/
+    }
+
+    <SC_RE_QUOT>{
+        %action AC_RE_QUOT_END      /\"/
+        %action AC_RE_QUOT_BLANK    /{BLANK}/
+    }
+
+    <{SCG_REGEXP_ANY}>{
+        %action AC_RE_ESCSEQ        /{ESCSEQ}/
+        %action AC_RE_ANYCHAR       /{ANYCHAR}/
+    }
+
+    <SC_RE_CCL>{
+        %action AC_RE_CCL_END       /\]/
+        %action AC_RE_CCL_REF1      /"[:"{NAME}":]"/
+        %action AC_RE_CCL_REF2      /"[:"{NAME2}":]"/
+        %action AC_RE_CCL_CHAR      /{CCLCHAR}/
+        %action AC_RE_CCL_CHAR2     /{CCLCHAR}-{CCLCHAR}/
+    }
+
+    <INITIAL>{
+        %action AC_NL               /{NL}/
+        %action AC_WS               /[[:space:]]/
+        %action AC_MCOMM_START      /"/*"/
+        %action AC_SCOMM_START      /"//"/
+        %action AC_REGEX_START      /\/\^?/
+
+        %action AC_PACKAGE          /"%package"/
+        %action AC_SCENARIO         /"%scenario"/
+        %action AC_STATE            /"%state"/
+        %action AC_EVENT            /"%event"/
+        %action AC_GROUP            /"%group"/
+        %action AC_DEFINE           /"%define"/
+        %action AC_ACTION           /"%action"/
+        %action AC_EXPORT           /"%export"/
+
+        %action AC_RESERVED         /[yY][yY]{ALNUM_}*/
+        %action AC_IDEN             /{NAME}/
+        %action AC_OP               /[\{\}\.\,\<\>]/
+    }
+}
+

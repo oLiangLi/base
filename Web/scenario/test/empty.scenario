@@ -1,0 +1,13 @@
+
+/**
+ *! multi-line comment ....
+ */
+
+//
+// single-line comment ...
+//
+%package machine.foobar
+
+%scenario Empty {
+
+}
