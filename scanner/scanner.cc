@@ -2132,7 +2132,7 @@ void rlLexicalScannerGenerator::LexicalScannerDestroy(LexicalScanner_t* scanner)
 namespace {
 #define _XDPDA_OUTPUT_TRACE 1 /* */
 #define _XDPDA_IMPLEMENT_TOKENENUMS_DECLARE_
-#define XDPDA_GRAMMAR_DECLARE_FILE "Web/Grammar/regexp.jy.INL"
+#define XDPDA_GRAMMAR_DECLARE_FILE "base/Web/Grammar/regexp.jy.INL"
 
 #define XDPDA_IMPLEMENT_NEXTSTATE_FUNCTION_USERCODE const int* const value = nullptr
 #define XDPDA_IMPLEMENT_NEXTSTATE_FUNCTION_DECLARE \

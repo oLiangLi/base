@@ -81,9 +81,11 @@ $(call wasmjs_add_ldflags, $(jsCipher_wASM_LDFLAGS))
 
 $(call call_add_optimize_module)
 
+LOCAL_SRC_FILES_A := \
+	$(wORLD_ROOT)/base/src/base.cc	\
+	$(wORLD_ROOT)/base/src/crypto.cc
+
 LOCAL_SRC_FILES :=	\
-	../../base/src/base.cc	\
-	../../base/src/crypto.cc	\
 	third_party/miniz/miniz.c	\
 	main.cc
 
