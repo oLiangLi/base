@@ -26,7 +26,7 @@ export async function CipherLoader(
     VV(): number;
 
     // uint32_t rLANG_GetCrc32(uint32_t crc, const void* data, int len)
-    CC(crc: number, p: Addr, sz: number): number;
+    CC(crc: number, cc: number): number;
 
     // int rLANG_Uncompressed(void* output, int olen, const void* input, int ilen)
     UZ(output: Addr, olen: number, input: Addr, ilen: number): number;
@@ -649,24 +649,10 @@ Diablo Walks the Earth
 
   const CC = _native.CC;
   function crc32(crc: integer, buffer: Buffer): integer {
-    const SIZE_FRAME = 4096,
-      frame = localFrame(SIZE_FRAME),
-      local = localBuffer(frame, SIZE_FRAME);
-    let off = 0,
-      len = buffer.length;
-
-    while (len > SIZE_FRAME) {
-      buffer.copy(local, 0, off);
-      crc = CC(crc, frame, SIZE_FRAME);
-      off += SIZE_FRAME;
-      len -= SIZE_FRAME;
+    const size = buffer.length;
+    for (let i = 0; i < size; ++i) {
+      crc = CC(crc, buffer[i]);
     }
-
-    if (len) {
-      buffer.copy(local, 0, off);
-      crc = CC(crc, frame, len);
-    }
-
     return crc;
   }
 

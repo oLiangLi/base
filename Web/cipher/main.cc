@@ -75,8 +75,8 @@ rLANGEXPORT int jsCipherHashContextFinal(jsCipherHashContext* ctx, uint8_t* md) 
   }
 }
 
-rLANGEXPORT uint32_t rLANGAPI rLANG_GetCrc32(uint32_t crc, const void* data, int len) {
-  return mz_crc32(crc, (const uint8_t*)data, len);
+rLANGEXPORT uint32_t rLANGAPI rLANG_GetCrc32(uint32_t crc, uint8_t cc) {
+  return rlCrc32(crc, cc);
 }
 
 rLANGEXPORT int rLANGAPI rLANG_Uncompressed(void* output, int olen, const void* input, int ilen) {

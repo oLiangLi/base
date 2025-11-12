@@ -83,7 +83,8 @@ $(call call_add_optimize_module)
 
 LOCAL_SRC_FILES_A := \
 	$(wORLD_ROOT)/base/src/base.cc	\
-	$(wORLD_ROOT)/base/src/crypto.cc
+	$(wORLD_ROOT)/base/src/crypto.cc \
+	$(wORLD_ROOT)/base/src/data.cc
 
 LOCAL_SRC_FILES :=	\
 	third_party/miniz/miniz.c	\
