@@ -14,11 +14,17 @@ namespace {
 
 #ifndef rLANG_CONFIG_MINIMAL_WORLD
 #ifdef __EMSCRIPTEN__
-rLANGWASMIMPORT(double, Platform_GetTickCount, (), {
-  double result;
-  EM_ASM_({ HEAPF64[$0>>>3] = Date.now(); }, &result);
-  return result;
-}, "rLANG", "jsGetTickCount")
+rLANGWASMIMPORT(
+    double,
+    Platform_GetTickCount,
+    (),
+    {
+      double result;
+      EM_ASM_({ HEAPF64[$0 >>> 3] = Date.now(); }, &result);
+      return result;
+    },
+    "rLANG",
+    "jsGetTickCount")
 #else /* __EMSCRIPTEN__ */
 uint64_t Platform_GetTickCount() {
 #ifdef _WIN32
