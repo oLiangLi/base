@@ -25,7 +25,7 @@ export async function CipherLoader(
     // uint32_t rLANG_GetVersion(void)
     VV(): number;
 
-    // uint32_t rLANG_GetCrc32(uint32_t crc, const void* data, int len)
+    // uint32_t rLANG_GetCrc32(uint32_t crc, uint8_t cc)
     CC(crc: number, cc: number): number;
 
     // int rLANG_Uncompressed(void* output, int olen, const void* input, int ilen)
