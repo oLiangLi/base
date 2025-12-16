@@ -40,10 +40,10 @@
 #define rLANG_UNLIKELY(x) (x)
 #endif /* rLANG_UNLIKELY */
 
-#include <stdint.h>
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <assert.h>
 #include <ctype.h>
@@ -255,9 +255,9 @@ rLANG_DECLARE_MACHINE
 #endif /* rLANG_DECLARE_HANDLE */
 
 #ifndef rLANG_DECLARE_PRIVATE_CONTEXT
-#define rLANG_DECLARE_PRIVATE_CONTEXT(NAME, SIZE)                          \
-  typedef struct {                                                         \
-    uint64_t j__none_of_your_bussiness[1 + ((SIZE)-1) / sizeof(uint64_t)]; \
+#define rLANG_DECLARE_PRIVATE_CONTEXT(NAME, SIZE)                            \
+  typedef struct {                                                           \
+    uint64_t j__none_of_your_bussiness[1 + ((SIZE) - 1) / sizeof(uint64_t)]; \
   } NAME
 #endif /* rLANG_DECLARE_PRIVATE_CONTEXT */
 
@@ -273,7 +273,9 @@ using uint32_t = ::uint32_t;
 using uint64_t = ::uint64_t;
 #endif /* rLANG_CONFIG_BASETYPE */
 
+#ifndef rLANG_DebugBreak
 rLANGEXPORT int rLANGAPI rLANG_DebugBreak();
+#endif /* rLANG_DebugBreak */
 rLANGEXPORT int rLANGAPI rLANG_IsDebuggerPresent();
 rLANGEXPORT int rLANGAPI rLANG_OutputStackTrace();
 rLANGEXPORT int rLANGAPI rLANG_SetThreadName(const char* name);
