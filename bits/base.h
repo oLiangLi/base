@@ -195,6 +195,33 @@ rLANG_DECLARE_MACHINE
 /**
  *!
  */
+#ifndef rLANG_ITCM_TEXT
+#define rLANG_ITCM_TEXT
+#endif /* rLANG_ITCM_TEXT */
+
+#ifndef rLANG_ITCM_RODATA
+#define rLANG_ITCM_RODATA
+#endif /* rLANG_ITCM_RODATA */
+
+#ifndef rLANG_DTCM_DATA
+#define rLANG_DTCM_DATA
+#endif /* rLANG_DTCM_DATA */
+
+#ifndef rLANG_DTCM_BSS
+#define rLANG_DTCM_BSS
+#endif /* rLANG_DTCM_BSS */
+
+#ifndef rLANG_EXT_DATA
+#define rLANG_EXT_DATA
+#endif /* rLANG_EXT_DATA*/
+
+#ifndef rLANG_EXT_BSS
+#define rLANG_EXT_BSS
+#endif /* rLANG_EXT_BSS */
+
+/**
+ *!
+ */
 #ifndef rLANG_MODULE_EXTERN
 #define rLANG_MODULE_EXTERN extern rLANGCXXONLY("C")
 #endif /* rLANG_MODULE_EXTERN */
