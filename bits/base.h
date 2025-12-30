@@ -211,6 +211,14 @@ rLANG_DECLARE_MACHINE
 #define rLANG_DTCM_BSS
 #endif /* rLANG_DTCM_BSS */
 
+#ifndef rLANG_SRAM_DATA
+#define rLANG_SRAM_DATA
+#endif /* rLANG_SRAM_DATA */
+
+#ifndef rLANG_SRAM_BSS
+#define rLANG_SRAM_BSS
+#endif /* rLANG_SRAM_BSS */
+
 #ifndef rLANG_EXT_DATA
 #define rLANG_EXT_DATA
 #endif /* rLANG_EXT_DATA*/
