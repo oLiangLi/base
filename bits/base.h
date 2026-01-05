@@ -219,13 +219,13 @@ rLANG_DECLARE_MACHINE
 #define rLANG_SRAM_BSS
 #endif /* rLANG_SRAM_BSS */
 
-#ifndef rLANG_EXT_DATA
-#define rLANG_EXT_DATA
-#endif /* rLANG_EXT_DATA*/
+#ifndef rLANG_XSHR_DATA
+#define rLANG_XSHR_DATA
+#endif /* rLANG_XSHR_DATA*/
 
-#ifndef rLANG_EXT_BSS
-#define rLANG_EXT_BSS
-#endif /* rLANG_EXT_BSS */
+#ifndef rLANG_XSHR_BSS
+#define rLANG_XSHR_BSS
+#endif /* rLANG_XSHR_BSS */
 
 /**
  *!
