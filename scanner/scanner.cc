@@ -1,8 +1,18 @@
 #include "./scanner.h"
 #include "../grammar/grammar.h"
+
 #include <algorithm>
+#include <cstdlib>
+#include <new>
 
 rLANG_DECLARE_MACHINE
+
+namespace {
+template <typename _Ty>
+constexpr _Ty __std_abs(const _Ty& v) {
+  return v >= 0 ? v : -v;
+}
+}  // namespace
 
 #ifndef MAX_RULE
 #define MAX_RULE (1 * 1024 * 1024)
@@ -1690,7 +1700,7 @@ int rlLexicalScannerGenerator::symfollowset(int ds[], int dsize, int transsym, i
     } else if (sym == SYM_EPSILON) {
     }
 
-    else if (std::abs(ecgroup[sym]) == transsym)
+    else if (__std_abs(ecgroup[sym]) == transsym)
       nset[++numstates] = tsp;
 
   bottom:;
@@ -1989,7 +1999,7 @@ void rlLexicalScannerGenerator::gen_table() {
   for (i = 1; i < CSIZE; ++i) {
     if (IGNCASE && x_isupper(i))
       ecgroup[i] = ecgroup[x_tolower(i)];
-    ecgroup[i] = std::abs(ecgroup[i]);
+    ecgroup[i] = __std_abs(ecgroup[i]);
   }
 
   for (i = 1; i <= lastdfa; ++i) {
@@ -2149,3 +2159,4 @@ int rlLexicalScannerGenerator::LexicalRegexpHelper_t::yyNextState(int reason) {
 }
 
 rLANG_DECLARE_END
+
