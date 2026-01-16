@@ -17,9 +17,8 @@ struct rlTaskNode_t {
 };
 
 struct rlTaskGroup_t {
-  void* tasks_priority_; /* RB-Tree, rlTaskNode_t ... */
-  void* tasks_normal_;   /* RB-Tree, rlTaskNode_t ... */
-  int64_t last_ticks_;   /* private: last ExecuteTask ticks ... */
+  void* tasks_;        /* RB-Tree, rlTaskNode_t ... */
+  int64_t last_ticks_; /* private: last ExecuteTask ticks ... */
 
   /**
    *!
@@ -40,8 +39,8 @@ struct rlTaskGroup_t {
   /**
    *!
    */
-  int(rLANGAPI* ScheduleTask)(struct rlTaskGroup_t* group, struct rlTaskNode_t* task, int priority, int64_t ticks);
-  int(rLANGAPI* UnscheduleTask)(struct rlTaskGroup_t* group, struct rlTaskNode_t* task, int priority);
+  int(rLANGAPI* ScheduleTask)(struct rlTaskGroup_t* group, struct rlTaskNode_t* task, int64_t ticks);
+  int(rLANGAPI* UnscheduleTask)(struct rlTaskGroup_t* group, struct rlTaskNode_t* task);
   int(rLANGAPI* ExecuteTask)(struct rlTaskGroup_t* group, int64_t ticks);
 
   /**
@@ -55,11 +54,9 @@ struct rlTaskGroup_t {
  */
 rLANGEXPORT int rLANGAPI rlTaskGroup_DefaultScheduleTask(struct rlTaskGroup_t* group,
                                                          struct rlTaskNode_t* task,
-                                                         int priority,
                                                          int64_t ticks);
 rLANGEXPORT int rLANGAPI rlTaskGroup_DefaultUnscheduleTask(struct rlTaskGroup_t* group,
-                                                           struct rlTaskNode_t* task,
-                                                           int priority);
+                                                           struct rlTaskNode_t* task);
 rLANGEXPORT int64_t rLANGAPI rlTaskGroup_DefaultNextTicks(struct rlTaskGroup_t* group);
 rLANGEXPORT void rLANGAPI rlTaskGroupDefault(struct rlTaskGroup_t* group);
 
@@ -102,21 +99,18 @@ rlBASE_INLINE int rLANGAPI rlTaskGroup_UsFromTicks(struct rlTaskGroup_t* group, 
 }
 rlBASE_INLINE int rLANGAPI rlTaskGroup_ScheduleTask(struct rlTaskGroup_t* group,
                                                     struct rlTaskNode_t* task,
-                                                    int priority,
                                                     int64_t ticks) {
-  return (*group->ScheduleTask)(group, task, priority, ticks);
+  return (*group->ScheduleTask)(group, task, ticks);
 }
 rlBASE_INLINE int rLANGAPI rlTaskGroup_ScheduleTaskNext(struct rlTaskGroup_t* group,
                                                         struct rlTaskNode_t* task,
-                                                        int priority,
                                                         int64_t ticks){
   ticks += rlTaskGroup_GetTicks(group);
-  return (*group->ScheduleTask)(group, task, priority, ticks);
+  return (*group->ScheduleTask)(group, task, ticks);
 }
 rlBASE_INLINE int rLANGAPI rlTaskGroup_UnscheduleTask(struct rlTaskGroup_t* group,
-                                                      struct rlTaskNode_t* task,
-                                                      int priority) {
-  return (*group->UnscheduleTask)(group, task, priority);
+                                                      struct rlTaskNode_t* task) {
+  return (*group->UnscheduleTask)(group, task);
 }
 rlBASE_INLINE int rLANGAPI rlTaskGroup_ExecuteTask(struct rlTaskGroup_t* group, int64_t ticks) {
   return (*group->ExecuteTask)(group, ticks);

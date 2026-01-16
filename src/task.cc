@@ -8,22 +8,19 @@ rLANG_DECLARE_MACHINE
 
 rLANGEXPORT int rLANGAPI rlTaskGroup_DefaultScheduleTask(struct rlTaskGroup_t* group,
                                                          struct rlTaskNode_t* task,
-                                                         int priority,
                                                          int64_t ticks) {
   struct rlTaskNode_t* cmp;
   rLANG_VERIFY_GT(ticks, group->last_ticks_);
 
   task->next_ticks_ = ticks;
-  rLANG_RBTREE_PREV_INSERT_NODE(struct rlTaskNode_t*, priority ? group->tasks_priority_ : group->tasks_normal_, cmp,
-                                cmp->next_ticks_ <= ticks, task, 0);
-  rLANG_RBTREE_INSERT_NODE_0(task, priority ? &group->tasks_priority_ : &group->tasks_normal_);
+  rLANG_RBTREE_PREV_INSERT_NODE(struct rlTaskNode_t*, group->tasks_, cmp, cmp->next_ticks_ <= ticks, task, 0);
+  rLANG_RBTREE_INSERT_NODE_0(task, &group->tasks_);
   return 0;
 }
 
 rLANGEXPORT int rLANGAPI rlTaskGroup_DefaultUnscheduleTask(struct rlTaskGroup_t* group,
-                                                           struct rlTaskNode_t* task,
-                                                           int priority) {
-  rLANG_RBTREE_ERASE_NODE_0(task, priority ? &group->tasks_priority_ : &group->tasks_normal_);
+                                                           struct rlTaskNode_t* task) {
+  rLANG_RBTREE_ERASE_NODE_0(task, &group->tasks_);
   return 0;
 }
 
@@ -31,15 +28,9 @@ rLANGEXPORT int64_t rLANGAPI rlTaskGroup_DefaultNextTicks(struct rlTaskGroup_t* 
   int64_t result = -1;
   struct rlTaskNode_t* node;
 
-  if (group->tasks_priority_) {
-    rLANG_RBTREE_NODE_MINIMUM(struct rlTaskNode_t*, group->tasks_priority_, node, 0);
+  if (group->tasks_) {
+    rLANG_RBTREE_NODE_MINIMUM(struct rlTaskNode_t*, group->tasks_, node, 0);
     result = node->next_ticks_;
-  }
-
-  if (group->tasks_normal_) {
-    rLANG_RBTREE_NODE_MINIMUM(struct rlTaskNode_t*, group->tasks_normal_, node, 0);
-    if (result < 0 || result > node->next_ticks_)
-      result = node->next_ticks_;
   }
 
   return result;
@@ -51,20 +42,11 @@ rLANGEXPORT int rLANGAPI rlTaskGroup_DefaultExecuteTask(struct rlTaskGroup_t* gr
   rLANG_VERIFY_GE(ticks, group->last_ticks_);
 
   group->last_ticks_ = ticks;
-  while (group->tasks_priority_) {
-    rLANG_RBTREE_NODE_MINIMUM(struct rlTaskNode_t*, group->tasks_priority_, task, 0);
+  while (group->tasks_) {
+    rLANG_RBTREE_NODE_MINIMUM(struct rlTaskNode_t*, group->tasks_, task, 0);
     if (task->next_ticks_ > ticks)
       break;
-    rLANG_RBTREE_ERASE_NODE_0(task, &group->tasks_priority_);
-    (*task->Closure)(group, task, ticks);
-    ++count;
-  }
-
-  while (group->tasks_normal_) {
-    rLANG_RBTREE_NODE_MINIMUM(struct rlTaskNode_t*, group->tasks_normal_, task, 0);
-    if (task->next_ticks_ > ticks)
-      break;
-    rLANG_RBTREE_ERASE_NODE_0(task, &group->tasks_normal_);
+    rLANG_RBTREE_ERASE_NODE_0(task, &group->tasks_);
     (*task->Closure)(group, task, ticks);
     ++count;
   }
@@ -160,8 +142,7 @@ int rLANGAPI platform_UsFromTicks(struct rlTaskGroup_t* group, int ticks) {
 }  // namespace
 
 rLANGEXPORT void rLANGAPI rlTaskGroupDefault(struct rlTaskGroup_t* group) {
-  group->tasks_priority_ = nullptr;
-  group->tasks_normal_ = nullptr;
+  group->tasks_ = nullptr;
   group->last_ticks_ = -1;
 
   group->GetTicks = platform_GetTicks;
