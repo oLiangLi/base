@@ -1278,8 +1278,31 @@ class CryptoSHA512 {
   rlCryptoShaCtx ctx_;
 };
 
+namespace memory {
+
+struct Handle {};
+
+template <class _Ty>
+void Clear(_Ty* p) {
+  p->~_Ty();
+}
+
+} /// namespace memory ...
+
 #endif /* __cplusplus */
 
 rLANG_DECLARE_END
+
+#ifdef __cplusplus
+
+inline void* operator new(size_t size, void* p, const ::machine::memory::Handle&) noexcept {
+  return p;
+}
+inline void operator delete(void*, size_t, const ::machine::memory::Handle&) noexcept {}
+
+#define rLANG_New(p) new ((p), ::machine::memory::Handle{})
+#define rLANG_Clear(p) ::machine::memory::Clear((p))
+
+#endif /* __cplusplus */
 
 #endif /* ___WTINC_BITS_BASE_H__ */
