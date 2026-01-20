@@ -55,6 +55,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__cplusplus)
+#include <type_traits>
+#endif /* defined(__cplusplus) */
+
 #if defined(rLANG_CONFIG_MINIMAL_WORLD) && !defined(rLANG_CONFIG_MINIMAL)
 #define rLANG_CONFIG_MINIMAL
 #endif /* rLANG_CONFIG_MINIMAL_WORLD */
@@ -295,6 +299,23 @@ rLANG_DECLARE_MACHINE
     uint64_t j__none_of_your_bussiness[1 + ((SIZE) - 1) / sizeof(uint64_t)]; \
   } NAME
 #endif /* rLANG_DECLARE_PRIVATE_CONTEXT */
+
+#if !defined(rLANG_CONTAINER_OF) && defined(__cplusplus)
+template <typename T, typename Member>
+inline T* rlang_foobar_container_of(Member* ptr, Member T::* member_ptr) {
+  static_assert(std::is_standard_layout_v<T>, "T must be a standard layout type");
+  return reinterpret_cast<T*>(reinterpret_cast<char*>(ptr) - (char*)&((T*)nullptr->*member_ptr));
+}
+#define rLANG_CONTAINER_OF(ptr, type, member) ::machine::rlang_foobar_container_of(ptr, &type::member)
+#elif !defined(rLANG_CONTAINER_OF) && (defined(__GNUC__) || defined(__clang__))
+#define rLANG_CONTAINER_OF(ptr, type, member)         \
+  ({                                                  \
+    const typeof(((type*)0)->member)* __mptr = (ptr); \
+    (type*)((char*)__mptr - offsetof(type, member));  \
+  })
+#elif !defined(rLANG_CONTAINER_OF)
+#define rLANG_CONTAINER_OF(ptr, type, member) ((type*)((uint8_t*)(ptr) - offsetof(type, member)))
+#endif /* rLANG_CONTAINER_OF */
 
 #if defined(__cplusplus) && (defined(rLANG_CONFIG_BASETYPE) || defined(_MSC_VER))
 using int8_t = ::int8_t;
