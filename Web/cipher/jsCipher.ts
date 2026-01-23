@@ -109,8 +109,10 @@ export async function CipherLoader(
 
   class Context {
     static async Load() {
-      Context.TEXT = jsCipherText.Assets();
-      Context.Module = await WebAssembly.compile(<BufferSource>Context.TEXT);
+      if (!Context.TEXT || !Context.Module) {
+        Context.TEXT = jsCipherText.Assets();
+        Context.Module = await WebAssembly.compile(<BufferSource>Context.TEXT);
+      }
     }
     static TEXT: Buffer;
     static Module: WebAssembly.Module;

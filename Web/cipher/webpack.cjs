@@ -1,12 +1,13 @@
-const path = require('node:path');
-const webpack = require('webpack');
-const Goal = 'Build/html/js/jsWorld.js';
+const path = require("node:path");
+const webpack = require("webpack");
+const Goal = "Build/html/js/jsWorld.js";
 
 const license = `
 /*!
  * The jsCipherSuite for node.js && the browser.
  *
  * @author   LiangLI
+ * @license  MIT
  *
  * TODO:
  *   1) More testing && documents ...
@@ -21,54 +22,53 @@ const license = `
 `;
 
 class WebpackHook {
-    apply(compiler) {
-        const webpack = compiler.webpack;
-        compiler.hooks.thisCompilation.tap('WebpackHook', compilation=> {
-            compilation.hooks.processAssets.tapAsync(
-                {
-                    name: 'WebpackHook',
-                    stage: webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_INLINE
-                },
-                (compilationAssets, callback) => {
-                    const origin = compilationAssets[Goal];
-                    compilationAssets[Goal] = new webpack.sources.ConcatSource(license,
-                        origin.source().replace(/^\/\*!.+\.LICENSE\.txt\s*\*\//, ''));
+  apply(compiler) {
+    const webpack = compiler.webpack;
+    compiler.hooks.thisCompilation.tap("WebpackHook", (compilation) => {
+      compilation.hooks.processAssets.tapAsync(
+        {
+          name: "WebpackHook",
+          stage: webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_INLINE,
+        },
+        (compilationAssets, callback) => {
+          const origin = compilationAssets[Goal];
+          compilationAssets[Goal] = new webpack.sources.ConcatSource(
+            license,
+            origin.source().replace(/^\/\*!.+\.LICENSE\.txt\s*\*\//, "")
+          );
 
-                    for(const name of Object.keys(compilationAssets)) {
-                        if(name.endsWith('LICENSE.txt'))
-                            delete compilationAssets[name];
-                    }
+          for (const name of Object.keys(compilationAssets)) {
+            if (name.endsWith("LICENSE.txt")) delete compilationAssets[name];
+          }
 
-                    callback();
-                });
-        });
-    }
+          callback();
+        }
+      );
+    });
+  }
 }
 
 module.exports = {
-    entry : path.join(__dirname, '../../.assets/cipher/jsCipher.js'),
+  entry: path.join(__dirname, "../../.assets/cipher/jsCipher.js"),
 
-    resolve: {
-        extensions: ['.js'],
+  resolve: {
+    extensions: [".js"],
+  },
+  mode: "production",
+  target: "web",
+  output: {
+    path: path.resolve(__dirname, "../.."),
+    filename: Goal,
+    library: {
+      type: "var",
+      name: "jsWorld",
     },
-    mode: 'production',
-    target: 'web',
-    output : {
-        path: path.resolve(__dirname, '../..'),
-        filename: Goal,
-        library: {
-            type: 'var',
-            name: 'jsWorld',
-        }
-    },
+  },
 
-    plugins: [
-        new WebpackHook(),
-        new webpack.ProvidePlugin({
-            Buffer: ['buffer', 'Buffer'],
-        }),
-    ]
-}
-
-
-
+  plugins: [
+    new WebpackHook(),
+    new webpack.ProvidePlugin({
+      Buffer: ["buffer", "Buffer"],
+    }),
+  ],
+};
