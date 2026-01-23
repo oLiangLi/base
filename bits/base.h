@@ -339,10 +339,14 @@ rLANGEXPORT int rLANGAPI rLANG_Sleep(int ms);
 
 rLANGEXPORT void rLANGAPI rLANG_SetVerifyAbort(int flag);
 rLANGEXPORT void rLANGAPI rLANG_OnVerifyFailed(const char* expr, const char* file, int line);
-static inline void rLANG_VerifyExpr(int v, const char* expr, const char* file, int line) {
-  if (!v)
-    rLANG_OnVerifyFailed(expr, file, line);
-}
+
+#ifndef rLANG_VerifyExpr
+#define rLANG_VerifyExpr(v, expr, file, line)       \
+  do {                                              \
+    if rLANG_UNLIKELY (!(v))                        \
+      rLANG_OnVerifyFailed((expr), (file), (line)); \
+  } while (0)
+#endif /* rLANG_VerifyExpr */
 
 #define rLANG_VERIFY_TRUE(expr) rLANG_VerifyExpr(!!(expr), "true == " #expr, __FILE__, __LINE__)
 #define rLANG_VERIFY_FALSE(expr) rLANG_VerifyExpr(!(expr), "false == " #expr, __FILE__, __LINE__)
