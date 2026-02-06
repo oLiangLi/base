@@ -40,6 +40,32 @@
 #define rLANG_UNLIKELY(x) (x)
 #endif /* rLANG_UNLIKELY */
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma message("==== Only supports clang-cl ====")
+#endif /* clang-cl */
+
+/**
+ *! IS_PDP_ENDIAN (3412): Not Supported!!
+ */
+#if defined(IS_LITTLE_ENDIAN) && defined(IS_BIG_ENDIAN)
+#error "Error IS_LITTLE_ENDIAN + IS_BIG_ENDIAN"
+#endif /* IS_LITTLE_ENDIAN && IS_BIG_ENDIAN */
+
+/**
+ *!
+ */
+#if !defined(IS_LITTLE_ENDIAN) && !defined(IS_BIG_ENDIAN) && defined(__BYTE_ORDER__) && \
+    defined(__ORDER_BIG_ENDIAN__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#define IS_BIG_ENDIAN /* 4321 */
+#endif /* IS_LITTLE_ENDIAN || IS_BIG_ENDIAN */
+
+/**
+ *!
+ */
+#if !defined(IS_LITTLE_ENDIAN) && !defined(IS_BIG_ENDIAN)
+#define IS_LITTLE_ENDIAN /* default: 1234 */
+#endif /* IS_LITTLE_ENDIAN || IS_BIG_ENDIAN  */
+
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -356,6 +382,22 @@ rLANGEXPORT void rLANGAPI rLANG_OnVerifyFailed(const char* expr, const char* fil
 #define rLANG_VERIFY_LT(a, b) rLANG_VerifyExpr((a) < (b), #a " < " #b, __FILE__, __LINE__)
 #define rLANG_VERIFY_GE(a, b) rLANG_VerifyExpr((a) >= (b), #a " >= " #b, __FILE__, __LINE__)
 #define rLANG_VERIFY_LE(a, b) rLANG_VerifyExpr((a) <= (b), #a " <= " #b, __FILE__, __LINE__)
+
+/**
+ *!
+ */
+#if !defined(ASSERT) && defined(rLANG_CONFIG_ASSERT) && rLANG_CONFIG_ASSERT
+#define ASSERT(x) rLANG_VERIFY_TRUE((x))
+#elif !defined(ASSERT)
+#define ASSERT(x) assert((x))
+#endif /* */
+
+/**
+ *!
+ */
+#ifndef VERIFY
+#define VERIFY(x) rLANG_VERIFY_TRUE((x))
+#endif /* VERIFY */
 
 /* rlCipherSuiteV0: [SHA1 [*N/A*]]/SHA256/SHA384/SHA512/X25519/ED25519/CHACHA20/POLY1305 */
 rLANG_DECLARE_PRIVATE_CONTEXT(rlCryptoShaCtx, 240);
