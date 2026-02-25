@@ -1221,7 +1221,7 @@ rLANGEXPORT void rLANGAPI rLANG_RBTREE_ERASE_NODE_X(void* node, void** root, con
 
 rLANG_ABIREQUIRE(rLANG_WORLD_MAGIC == rLANG_DECLARE_MAGIC_X('r', 'L', 'A', 'N', 'G') && sizeof(int) == 4 &&
                  sizeof(double) == 8 && (sizeof(void*) == 4 || sizeof(void*) == 8) &&
-                 sizeof(void*) == sizeof(uintptr_t) && sizeof(size_t) == sizeof(uintptr_t));
+                 sizeof(void*) == sizeof(uintptr_t) && sizeof(size_t) == sizeof(uintptr_t) && 8 == CHAR_BIT);
 
 #ifdef __cplusplus
 namespace Magic {
