@@ -3,7 +3,7 @@ import * as jsCipherText from "../Assembly/jsCipher_wasm";
 
 export async function CipherLoader(
   TRNG?: W.RandomNumberGenerator,
-  MRND?: (v: W.integer) => W.integer
+  MRND?: (v: W.integer) => W.integer,
 ): Promise<W.CipherSuiteV0> {
   type Addr = W.Addr;
   type integer = W.integer;
@@ -133,9 +133,7 @@ export async function CipherLoader(
 
       super(`${String(m)}
             
-${++Annihilus.stones} Stones of Jordan Sold to Merchants
-
-Diablo Walks the Earth
+${++Annihilus.stones} Stones of Jordan Sold to Merchants, Diablo Walks the Earth
 
               Annihilus
              Small Charm
@@ -146,7 +144,6 @@ Diablo Walks the Earth
         +${a} to All Attributes
          All Resistances +${r}
        +${e}% to Experience Gained
-
 
 `);
 
@@ -244,7 +241,7 @@ Diablo Walks the Earth
   }
 
   function ChaCha20_(state: Buffer /* 64 */, callback: (stream: Buffer /* 64 */, index: integer) => boolean): void {
-    if (state.length !== 64) throw Error("EINVAL");
+    if (state.length !== 64) throw Annihilus.Create("EINVAL");
 
     let index = 0;
     const HEAP32 = new Uint32Array(_memory.buffer);
@@ -261,7 +258,7 @@ Diablo Walks the Earth
   }
 
   function ChaChaPolyI_(secret_: Buffer): CipherAEAD {
-    if (secret_.length !== 32) throw Error("EINVAL");
+    if (secret_.length !== 32) throw Annihilus.Create("EINVAL");
     const secret = Buffer_alloc(32);
     secret_.copy(secret);
 
@@ -271,7 +268,7 @@ Diablo Walks the Earth
 
     function seal(input: Buffer, nonce: Buffer, aad?: Buffer): Buffer {
       const length = input.length;
-      if (nonce.length !== 12) throw Error("EINVAL");
+      if (nonce.length !== 12) throw Annihilus.Create("EINVAL");
 
       const result = Buffer_alloc(length + 16);
       const [context, contextBuffer_] = localContext();
@@ -328,7 +325,7 @@ Diablo Walks the Earth
 
     function open(input: Buffer, nonce: Buffer, aad?: Buffer): Buffer {
       const length = input.length - 16;
-      if (nonce.length !== 12 || length < 0) throw Error("EINVAL");
+      if (nonce.length !== 12 || length < 0) throw Annihilus.Create("EINVAL");
 
       const result = Buffer_alloc(length);
       const [context, contextBuffer_] = localContext();
@@ -380,7 +377,7 @@ Diablo Walks the Earth
       const check = Buffer_compare(input.subarray(length), contextBuffer_.subarray(0, 16));
       contextBuffer_.fill(0);
 
-      if (0 !== check) throw Error("EFAULT");
+      if (0 !== check) throw Annihilus.Create("EFAULT");
       return result;
     }
 
@@ -419,7 +416,7 @@ Diablo Walks the Earth
           return jsCipherHashType.SHA512;
 
         default:
-          throw TypeError(`MD ${type} Not implements yet!`);
+          throw Annihilus.Create(`MD ${type} Not implements yet!`);
       }
     }
 
@@ -499,13 +496,13 @@ Diablo Walks the Earth
         return this;
       }
       SetPublicKey(pubkey: Buffer): CipherEd25519 {
-        if (pubkey.length !== 32) throw Error("EINVAL");
+        if (pubkey.length !== 32) throw Annihilus.Create("EINVAL");
         cipher.fill(0);
         pubkey.copy(cipher);
         return this;
       }
       SetPrivateKey(prikey: Buffer): CipherEd25519 {
-        if (prikey.length !== 32) throw Error("EINVAL");
+        if (prikey.length !== 32) throw Annihilus.Create("EINVAL");
         const [context, contextBuffer_] = localContext();
         prikey.copy(contextBuffer_, 32);
         Curve25519_EP(context, context + 32);
@@ -516,7 +513,7 @@ Diablo Walks the Earth
 
       Sign(message: Buffer): Buffer {
         const SIZE_FRAME = message.length + 128; // [ cipher, signature, message ]
-        if (SIZE_FRAME > _GBSIZE) throw Error("ENOMEM");
+        if (SIZE_FRAME > _GBSIZE) throw Annihilus.Create("ENOMEM");
         const frame = localFrame(SIZE_FRAME),
           buffer = localBuffer(frame, SIZE_FRAME);
         const signature = Buffer_alloc(64);
@@ -532,9 +529,9 @@ Diablo Walks the Earth
       Verify(message: Buffer, sign: Buffer): boolean {
         const SIZE_FRAME = message.length + 128; // [ cipher, signature, message ]
 
-        if (sign.length !== 64) throw Error("EINVAL");
+        if (sign.length !== 64) throw Annihilus.Create("EINVAL");
 
-        if (SIZE_FRAME > _GBSIZE) throw Error("ENOMEM");
+        if (SIZE_FRAME > _GBSIZE) throw Annihilus.Create("ENOMEM");
 
         const frame = localFrame(SIZE_FRAME),
           buffer = localBuffer(frame, SIZE_FRAME);
@@ -542,8 +539,6 @@ Diablo Walks the Earth
         sign.copy(buffer, 64);
         message.copy(buffer, 128);
         let result = Curve25519_EV(frame + 128, message.length, frame + 64, frame);
-
-        //if (result < 0) throw Error("EFAULT");
         return 0 === result;
       }
 
@@ -573,13 +568,13 @@ Diablo Walks the Earth
         return this;
       }
       SetPublicKey(pubkey: Buffer): CipherX25519 {
-        if (pubkey.length !== 32) throw Error("EINVAL");
+        if (pubkey.length !== 32) throw Annihilus.Create("EINVAL");
         cipher.fill(0);
         pubkey.copy(cipher);
         return this;
       }
       SetPrivateKey(prikey: Buffer): CipherX25519 {
-        if (prikey.length !== 32) throw Error("EINVAL");
+        if (prikey.length !== 32) throw Annihilus.Create("EINVAL");
         const [context, contextBuffer_] = localContext();
         prikey.copy(contextBuffer_, 32);
         Curve25519_XP(context, context + 32);
@@ -590,7 +585,7 @@ Diablo Walks the Earth
 
       X25519(pubk_: CipherX25519 | Buffer): Buffer {
         const pubk: Buffer = pubk_ instanceof Buffer ? pubk_ : (pubk_ as CipherX25519).GetPublicKey();
-        if (pubk.length !== 32) throw Error("EINVAL");
+        if (pubk.length !== 32) throw Annihilus.Create("EINVAL");
 
         const secret = Buffer_alloc(32);
         const [context, contextBuffer_] = localContext();
@@ -638,13 +633,13 @@ Diablo Walks the Earth
     const buffer = localBuffer(_GBADDR, _GBSIZE);
 
     if (szMax <= 0) szMax = _GBSIZE - offset;
-    else if (_GBSIZE - offset < szMax) throw Error("ENOMEM");
+    else if (_GBSIZE - offset < szMax) throw Annihilus.Create("ENOMEM");
 
-    if (szMax <= 0) throw Error("ENOMEM");
+    if (szMax <= 0) throw Annihilus.Create("ENOMEM");
 
     gzip.copy(buffer);
     const result = MINIUZ(offset + _GBADDR, szMax, _GBADDR, gzip.length);
-    if (result < 0 || result > szMax) throw Error("EFAULT");
+    if (result < 0 || result > szMax) throw Annihilus.Create("EFAULT");
 
     return cloneBuffer(offset + _GBADDR, result);
   }
