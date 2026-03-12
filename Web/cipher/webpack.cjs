@@ -1,5 +1,4 @@
 const path = require("node:path");
-const webpack = require("webpack");
 const Goal = "Build/html/js/jsWorld.js";
 
 const license = `
@@ -58,17 +57,10 @@ module.exports = {
   target: "web",
   output: {
     path: path.resolve(__dirname, "../.."),
-    filename: Goal,
-    library: {
-      type: "var",
-      name: "jsWorld",
-    },
+    filename: Goal
   },
 
   plugins: [
-    new WebpackHook(),
-    new webpack.ProvidePlugin({
-      Buffer: ["buffer", "Buffer"],
-    }),
+    new WebpackHook()
   ],
 };

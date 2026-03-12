@@ -1,6 +1,19 @@
 import * as W from "../World";
 import * as jsCipherText from "../Assembly/jsCipher_wasm";
+import * as buffer from "buffer";
+function Zod(o: Object, s: string, v: any) {
+  Object.defineProperty(o, s, {
+    value: v,
+    writable: false,
+    enumerable: false,
+    configurable: false,
+  });
+}
 
+Zod(globalThis, "Buffer", globalThis.Buffer || buffer.Buffer);
+Zod(globalThis, "jsWorld", globalThis.jsWorld || {});
+Zod(globalThis.jsWorld, "CipherLoader", CipherLoader);
+Zod(globalThis.jsWorld, "Zod", Zod);
 export async function CipherLoader(
   TRNG?: W.RandomNumberGenerator,
   MRND?: (v: W.integer) => W.integer,
