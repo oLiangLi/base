@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #ifndef ___WTINC_BITS_BASE_H__
 #define ___WTINC_BITS_BASE_H__
@@ -57,14 +57,14 @@
 #if !defined(IS_LITTLE_ENDIAN) && !defined(IS_BIG_ENDIAN) && defined(__BYTE_ORDER__) && \
     defined(__ORDER_BIG_ENDIAN__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define IS_BIG_ENDIAN /* 4321 */
-#endif /* IS_LITTLE_ENDIAN || IS_BIG_ENDIAN */
+#endif                /* IS_LITTLE_ENDIAN || IS_BIG_ENDIAN */
 
 /**
  *!
  */
 #if !defined(IS_LITTLE_ENDIAN) && !defined(IS_BIG_ENDIAN)
 #define IS_LITTLE_ENDIAN /* default: 1234 */
-#endif /* IS_LITTLE_ENDIAN || IS_BIG_ENDIAN  */
+#endif                   /* IS_LITTLE_ENDIAN || IS_BIG_ENDIAN  */
 
 #include <inttypes.h>
 #include <stdarg.h>
@@ -1245,6 +1245,130 @@ rlBASE_INLINE std::string Vs(uint32_t magic) {
 #endif /* rLANG_CONFIG_MINIMAL */
 }  // namespace Magic
 
+union rlGuid {
+  uint8_t v8_[16];
+  uint32_t v32_[4];
+
+  struct {
+    uint32_t Data1;
+    uint16_t Data2;
+    uint16_t Data3;
+    uint8_t Data4[8];
+  };
+
+  constexpr bool operator==(const rlGuid& rhs) const {
+    return v32_[0] == rhs.v32_[0] && v32_[1] == rhs.v32_[1] && v32_[2] == rhs.v32_[2] && v32_[3] == rhs.v32_[3];
+  }
+  constexpr bool operator!=(const rlGuid& rhs) const {
+    return v32_[0] != rhs.v32_[0] || v32_[1] != rhs.v32_[1] || v32_[2] != rhs.v32_[2] || v32_[3] != rhs.v32_[3];
+  }
+
+  constexpr const char* ToString(char buffer[37]) const {
+    buffer[36] = 0;
+    buffer[8] = buffer[13] = buffer[18] = buffer[23] = '-';
+
+    auto V2H = [](char* p, int cc) {
+      int c1 = cc >> 4;
+      int c2 = cc & 0x0F;
+
+      p[0] = c1 <= 9 ? '0' + c1 : 'a' - 10 + c1;
+      p[1] = c2 <= 9 ? '0' + c2 : 'a' - 10 + c2;
+    };
+
+    V2H(&buffer[0], v8_[0]);
+    V2H(&buffer[2], v8_[1]);
+    V2H(&buffer[4], v8_[2]);
+    V2H(&buffer[6], v8_[3]);
+
+    V2H(&buffer[9], v8_[4]);
+    V2H(&buffer[11], v8_[5]);
+
+    V2H(&buffer[14], v8_[6]);
+    V2H(&buffer[16], v8_[7]);
+
+    V2H(&buffer[19], v8_[8]);
+    V2H(&buffer[21], v8_[9]);
+
+    V2H(&buffer[24], v8_[10]);
+    V2H(&buffer[26], v8_[11]);
+    V2H(&buffer[28], v8_[12]);
+    V2H(&buffer[30], v8_[13]);
+    V2H(&buffer[32], v8_[14]);
+    V2H(&buffer[34], v8_[15]);
+
+    return buffer;
+  }
+
+  constexpr bool IsEmpty() const { return v32_[0] == 0 && v32_[1] == 0 && v32_[2] == 0 && v32_[3] == 0; }
+  static constexpr rlGuid From(const char* const guid) {
+    rlGuid V = {};
+    int error = 0;
+
+    auto H2V = [](int cc, int& err) {
+      if (cc >= '0' && cc <= '9')
+        return cc - '0';
+      if (cc >= 'A' && cc <= 'F')
+        return 10 + cc - 'A';
+      if (cc >= 'a' && cc <= 'f')
+        return 10 + cc - 'a';
+      ++err;
+      return 0;
+    };
+
+    uint8_t* p = &V.v8_[0];
+    for (int i = 0; 0 == error && i < 8; i += 2) {
+      *p = H2V(guid[i], error) << 4;
+      if (0 == error)
+        *p |= H2V(guid[i + 1], error);
+      ++p;
+    }
+    if (0 == error && guid[8] != '-') {
+      ++error;
+    }
+
+    for (int i = 9; 0 == error && i < 13; i += 2) {
+      *p = H2V(guid[i], error) << 4;
+      if (0 == error)
+        *p |= H2V(guid[i + 1], error);
+      ++p;
+    }
+    if (0 == error && guid[13] != '-') {
+      ++error;
+    }
+
+    for (int i = 14; 0 == error && i < 18; i += 2) {
+      *p = H2V(guid[i], error) << 4;
+      if (0 == error)
+        *p |= H2V(guid[i + 1], error);
+      ++p;
+    }
+    if (0 == error && guid[18] != '-') {
+      ++error;
+    }
+
+    for (int i = 19; 0 == error && i < 23; i += 2) {
+      *p = H2V(guid[i], error) << 4;
+      if (0 == error)
+        *p |= H2V(guid[i + 1], error);
+      ++p;
+    }
+    if (0 == error && guid[23] != '-') {
+      ++error;
+    }
+
+    for (int i = 24; 0 == error && i < 36; i += 2) {
+      *p = H2V(guid[i], error) << 4;
+      if (0 == error)
+        *p |= H2V(guid[i + 1], error);
+      ++p;
+    }
+
+    if (0 != error || 0 != guid[36])
+      return rlGuid{};
+    return V;
+  }
+};
+
 class CryptoSHA1 {
  public:
   enum { DIGEST_LENGTH = 20 };
@@ -1354,7 +1478,7 @@ void Clear(_Ty* p) {
   p->~_Ty();
 }
 
-} /// namespace memory ...
+}  /// namespace memory ...
 
 #endif /* __cplusplus */
 
