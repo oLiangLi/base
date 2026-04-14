@@ -1,5 +1,6 @@
 const ws = require("ws");
 const clild_process = require("child_process");
+const { cli } = require("webpack");
 
 const PORT = process.env["PORT"] || "13000";
 const HOST = process.env["HOST"] || "localhost";
@@ -39,8 +40,16 @@ wss.on("connection", function connection(ws, req) {
   const client_address = req.connection.remoteAddress;
   console.info(`Client ${client_address} connected}`);
 
+  function wsSend(data, cb) {
+    if (ws.readyState !== ws.OPEN) {
+      if (cb) cb(Error("Not Connected"));
+    } else {
+      ws.send(data, cb || function (err) {});
+    }
+  }
+
   if (all_clients.size >= CLIENT_COUNT) {
-    ws.send(`429 Too Many Clients\r\n`);
+    wsSend(`429 Too Many Clients\r\n`);
     return ws.close();
   }
 
@@ -85,17 +94,33 @@ wss.on("connection", function connection(ws, req) {
     });
 
     child.stdout.on("data", function (data) {
-      ws.send(data, (err) => {
+      wsSend(data, (err) => {
         if (err) CloseClient(err);
       });
+    });
+
+    let pending = [];
+    child.stdin.on("drain", () => {
+      while (pending.length && child.stdin.write(pending.shift()));
+      if (!pending.length) wsSend("READY\r\n");
     });
 
     ws.on("message", function (message) {
       if (Array.isArray(message)) message = Buffer.concat(message);
       else if (false === message instanceof Buffer) message = Buffer.from(message);
-      child.stdin.write(message, (err) => {
-        if (err) CloseClient(err);
-      });
+
+      if (pending.length || !child.stdin.write(message)) {
+        pending.push(message);
+        let total = 0;
+        for (const buf of pending) total += buf.length;
+
+        if (total > 4 * 1024 * 1024) {
+          wsSend("ABORT\r\n");
+          ws.close();
+        } else {
+          wsSend("EWOUDLOCK\r\n");
+        }
+      }
     });
 
     ws.on("close", function () {
@@ -106,7 +131,7 @@ wss.on("connection", function connection(ws, req) {
       CloseClient(err);
     });
   } catch (err) {
-    ws.send(`\r\n500 Internal Server Error\r\n${err.stack}\r\n`);
+    wsSend(`\r\n500 Internal Server Error\r\n${err.stack}\r\n`);
     return ws.close();
   }
 });
