@@ -117,7 +117,7 @@ wss.on("connection", function connection(ws, req) {
           wsSend("ABORT\r\n");
           ws.close();
         } else {
-          wsSend("EWOUDLOCK\r\n");
+          wsSend("EWOULDBLOCK\r\n");
         }
       }
     });
