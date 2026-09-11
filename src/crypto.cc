@@ -1,4 +1,4 @@
-#include "../base.h"
+﻿#include "../base.h"
 
 rLANG_DECLARE_MACHINE
 
@@ -5446,10 +5446,18 @@ rLANGEXPORT void rLANGAPI rlCryptoEd25519Sign(uint8_t out_sig[64],
   cipher_cleanse(nonce, sizeof(nonce));
   cipher_cleanse(az, sizeof(az));
 }
-rLANGEXPORT void rLANGAPI rlCryptoX25519(uint8_t out_shared_key[32],
-                                         const uint8_t private_key[32],
-                                         const uint8_t peer_public_value[32]) {
+rLANGEXPORT int rLANGAPI rlCryptoX25519(uint8_t out_shared_key[32],
+                                        const uint8_t private_key[32],
+                                        const uint8_t peer_public_value[32]) {
+  uint8_t zero = 0;
+
   x25519_scalar_mult(out_shared_key, private_key, peer_public_value);
+
+  /* RFC 7748 §6.1: 全零输出意味着对端公钥是低阶点(小群), 该共享密钥不可用 ——
+   * 必须由调用方拒绝(否则双方会静默接受一个攻击者可控的"共享"密钥)。 */
+  for (int i = 0; i < 32; ++i)
+    zero |= out_shared_key[i];
+  return 0 == zero ? -EFAULT : 0;
 }
 rLANGEXPORT void rLANGAPI rlCryptoX25519Pubkey(uint8_t out_public_value[32], const uint8_t private_key[32]) {
   uint8_t e[32];

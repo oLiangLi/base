@@ -431,9 +431,13 @@ rLANGEXPORT void rLANGAPI rlCryptoEd25519Sign(uint8_t out_sig[64],
                                               int message_len,
                                               const uint8_t public_key[32],
                                               const uint8_t private_key[32]);
-rLANGEXPORT void rLANGAPI rlCryptoX25519(uint8_t out_shared_key[32],
-                                         const uint8_t private_key[32],
-                                         const uint8_t peer_public_value[32]);
+/**
+ *! 计算 X25519 共享密钥; **返回值**: 0 = 成功, -EFAULT = 输出为全零(对端公钥是低阶点,
+ *! RFC 7748 §6.1 要求拒绝), 其它负值为错误。调用方必须检查返回值。
+ */
+rLANGEXPORT int rLANGAPI rlCryptoX25519(uint8_t out_shared_key[32],
+                                        const uint8_t private_key[32],
+                                        const uint8_t peer_public_value[32]);
 rLANGEXPORT void rLANGAPI rlCryptoX25519Pubkey(uint8_t out_public_value[32], const uint8_t private_key[32]);
 
 rLANGEXPORT void rLANGAPI rlCryptoChaCha20Init(rlCryptoChaCha20Ctx* ctx);

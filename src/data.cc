@@ -1,4 +1,4 @@
-#include "../base.h"
+﻿#include "../base.h"
 
 rLANG_DECLARE_MACHINE
 
@@ -211,6 +211,19 @@ rLANGEXPORT int rLANGAPI rl_BASE64Url_Write(char* zOUT, const uint8_t* zIN, int 
   return (int)(p - zOUT);
 }
 
+/**
+ *! CRC8/16/32 单字节步进(并入自上游 ccae27ad 等)。调用方自行串接:
+ *!   crc = rlCrc16(0, byte0) ... / 首次传初值(如 0 或 0xFFFF, 取决于目标规范)。
+ *!
+ *! 默认查表(快); 定义 **rLANG_CONFIG_ENABLE_LIMIT_WORLD** 时改用无表逐位实现 ——
+ *! 该宏表示"本产物是在 ukey 内运行的程序", 受限世界不允许 .rodata(设备固件要求
+ *! .rodata 必须为空, 且 flash 预算紧张), 故不能携带 256B/512B 的 CRC 表。
+ *! 两条路径逐位等价(多项式: CRC8 LSB-first 0x8C(=0x31 反射), CRC16 MSB-first 0x1021,
+ *! CRC32 反射 0xEDB88320)。
+ */
+
+#if !defined(rLANG_CONFIG_ENABLE_LIMIT_WORLD)
+
 rLANGEXPORT uint8_t rLANGAPI rlCrc8(uint8_t crc, uint8_t cc) {
   static const uint8_t rl_CRC8_Table[256] = {
       0x00, 0x5e, 0xbc, 0xe2, 0x61, 0x3f, 0xdd, 0x83, 0xc2, 0x9c, 0x7e, 0x20, 0xa3, 0xfd, 0x1f, 0x41, 0x9d, 0xc3, 0x21,
@@ -266,5 +279,36 @@ rLANGEXPORT uint32_t rLANGAPI rlCrc32(uint32_t crc, uint8_t cc) {
   crc = (crc >> 4) ^ rl_CRC32_Table[(crc & 0xF) ^ (cc >> 4)];
   return ~crc;
 }
+
+#else /* !rLANG_CONFIG_ENABLE_LIMIT_WORLD */
+
+rLANGEXPORT uint8_t rLANGAPI rlCrc8(uint8_t crc, uint8_t cc) {
+  uint8_t c = (uint8_t)(crc ^ cc);
+
+  for (int i = 0; i < 8; ++i)
+    c = (c & 1u) ? (uint8_t)((c >> 1) ^ 0x8Cu) : (uint8_t)(c >> 1);
+  return c;
+}
+
+rLANGEXPORT uint16_t rLANGAPI rlCrc16(uint16_t crc, uint8_t cc) {
+  /* 表项 = MSB-first 8 步(i << 8), 因此这里必须先把索引放到高字节 */
+  uint16_t c = (uint16_t)((uint16_t)((crc >> 8) ^ cc) << 8);
+
+  for (int i = 0; i < 8; ++i)
+    c = (c & 0x8000u) ? (uint16_t)((c << 1) ^ 0x1021u) : (uint16_t)(c << 1);
+  return (uint16_t)((uint16_t)(crc << 8) ^ c);
+}
+
+rLANGEXPORT uint32_t rLANGAPI rlCrc32(uint32_t crc, uint8_t cc) {
+  crc = ~crc;
+  for (int half = 0; half < 2; ++half) {
+    crc ^= (uint32_t)((half ? (cc >> 4) : cc) & 0x0Fu);
+    for (int i = 0; i < 4; ++i)
+      crc = (crc >> 1) ^ (0xEDB88320u & (0u - (crc & 1u)));
+  }
+  return ~crc;
+}
+
+#endif /* !rLANG_CONFIG_ENABLE_LIMIT_WORLD */
 
 rLANG_DECLARE_END
