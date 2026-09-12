@@ -37,7 +37,7 @@ bool global_abort_if_verify_failed_ = false;
 rlLogLevel global_log_level = rlLOG_INFO;
 
 #ifndef rLANG_CONFIG_LOGDATA_SIZEMAX
-#define rLANG_CONFIG_LOGDATA_SIZEMAX 1024
+#define rLANG_CONFIG_LOGDATA_SIZEMAX 2048
 #endif /* rLANG_CONFIG_LOGDATA_SIZEMAX */
 
 #if !defined(rLANG_CONFIG_MINIMAL_WORLD)
