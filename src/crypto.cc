@@ -2,6 +2,7 @@
 
 rLANG_DECLARE_MACHINE
 
+#if 0
 // libc (memset, memcpy) ...
 namespace {
 void cipher_cleanse(void* ptr, size_t size) {
@@ -150,6 +151,28 @@ void* cipher_memmove(void* dst, const void* src, size_t length) {
 #define memcpy(m, s, n) cipher_memcpy((m), (s), (n))
 #define memmove(m, s, n) cipher_memmove((m), (s), (n))
 }  // namespace
+
+#else
+
+static void cipher_cleanse(void* ptr, size_t size) {
+  uint8_t* p = reinterpret_cast<uint8_t*>(ptr);
+  uint32_t h = rLANG_CALCHASH_Xs((char*)&ptr, sizeof(void*));
+  uint8_t v = 0xFF & h;
+  uint8_t n = 0xFF & (h >> 8);
+
+  while (size--) {
+    *p++ = v += n;
+  }
+}
+
+#undef memset
+#undef memcpy
+#undef memmove
+#define memset(m, c, n) __builtin_memset((m), (c), (n))
+#define memcpy(m, s, n) __builtin_memcpy((m), (s), (n))
+#define memmove(m, s, n) __builtin_memmove((m), (s), (n))
+
+#endif
 
 // SHA1 ...
 namespace {
