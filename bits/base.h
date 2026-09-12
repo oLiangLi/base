@@ -40,6 +40,12 @@
 #define rLANG_UNLIKELY(x) (x)
 #endif /* rLANG_UNLIKELY */
 
+#if !defined(rLANG_NOINLINE) && (defined(__GNUC__) || defined(__clang__))
+#define rLANG_NOINLINE __attribute__((noinline, unused))
+#elif !defined(rLANG_NOINLINE)
+#define rLANG_NOINLINE
+#endif /* rLANG_NOINLINE */
+
 #if defined(_MSC_VER) && !defined(__clang__)
 #pragma message("==== Only supports clang-cl ====")
 #endif /* clang-cl */
@@ -336,7 +342,7 @@ inline T* rlang_foobar_container_of(Member* ptr, Member T::* member_ptr) {
 #elif !defined(rLANG_CONTAINER_OF) && (defined(__GNUC__) || defined(__clang__))
 #define rLANG_CONTAINER_OF(ptr, type, member)         \
   ({                                                  \
-    const typeof(((type*)0)->member)* __mptr = (ptr); \
+    const __typeof__(((type*)0)->member)* __mptr = (ptr); \
     (type*)((char*)__mptr - offsetof(type, member));  \
   })
 #elif !defined(rLANG_CONTAINER_OF)
